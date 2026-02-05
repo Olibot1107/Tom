@@ -1,6 +1,7 @@
 import time
 import threading
-from config_state import load_config, save_config, CONFIG
+import config_state
+from config_state import load_config, save_config
 from weather import WeatherProvider
 from ui_terminal import TerminalUI
 from ui_oled import OLEDDisplay
@@ -76,9 +77,8 @@ class CombinedDisplay:
 
 
 def main():
-    global CONFIG
-    CONFIG = load_config()
-    save_config(CONFIG)
+    config_state.CONFIG = load_config()
+    save_config(config_state.CONFIG)
 
     display = CombinedDisplay()
     try:
