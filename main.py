@@ -83,7 +83,7 @@ class TerminalUI:
         self.height = 24
         self.start_time = time.time()
         
-    def clear_screen(self):N
+    def clear_screen(self):
         """Clear the terminal screen"""
         os.system("cls" if os.name == "nt" else "clear")
         
