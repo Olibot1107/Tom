@@ -2,7 +2,7 @@ import os
 import time
 from datetime import datetime
 from PIL import Image, ImageDraw
-from config_state import get_config
+from .config_state import get_config
 from small import Color, create_ssd1306
 
 

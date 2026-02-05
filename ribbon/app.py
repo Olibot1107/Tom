@@ -1,14 +1,15 @@
 import time
 import threading
-import config_state
-from config_state import load_config, save_config
-from weather import WeatherProvider
-from ui_terminal import TerminalUI
-from ui_oled import OLEDDisplay
-from web_config import ConfigWebServer
-from web_reboot import RebootWebServer
-from assets import ensure_default_assets
-from audio import play_boot_sound
+from . import config_state
+from .config_state import load_config, save_config
+from .weather import WeatherProvider
+from .ui_terminal import TerminalUI
+from .ui_oled import OLEDDisplay
+from .web_config import ConfigWebServer
+from .web_reboot import RebootWebServer
+from .assets import ensure_default_assets
+from .audio import play_boot_sound, speak
+from .speech import SpeechListener
 
 
 class CombinedDisplay:
@@ -20,6 +21,7 @@ class CombinedDisplay:
         self.oled_display = OLEDDisplay(self.weather_provider)
         self.config_server = ConfigWebServer()
         self.reboot_server = RebootWebServer()
+        self.speech_listener = SpeechListener(self._handle_command, self._on_speech_text)
         self.running = False
         self.terminal_thread = None
         self.oled_thread = None
@@ -44,6 +46,7 @@ class CombinedDisplay:
         self.weather_provider.start()
         self.config_server.start()
         self.reboot_server.start()
+        self.speech_listener.start()
 
         self.terminal_thread = threading.Thread(
             target=self.start_terminal,
@@ -67,6 +70,7 @@ class CombinedDisplay:
     def stop(self):
         self.running = False
         self.weather_provider.stop()
+        self.speech_listener.stop()
         self.terminal_ui.stop()
         self.oled_display.stop()
 
@@ -74,6 +78,29 @@ class CombinedDisplay:
             self.oled_thread.join(timeout=1)
 
         print("👋 All displays stopped!")
+
+    def _handle_command(self, command):
+        command = command.strip().lower()
+        if not command:
+            return
+
+        if command.startswith("say "):
+            speak(command[4:].strip())
+            return
+
+        if command == "say hi" or command == "say hello":
+            speak("Hi")
+            return
+
+        if command == "time":
+            now = time.strftime("%I:%M %p")
+            speak(f"The time is {now}")
+            return
+
+        print(f"🗣️  Unknown command: {command}")
+
+    def _on_speech_text(self, text):
+        print(f"🎤 Heard: {text}")
 
 
 def main():

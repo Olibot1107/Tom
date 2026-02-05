@@ -3,7 +3,7 @@ import threading
 import time
 from urllib.request import urlopen
 from urllib.parse import urlencode
-from config_state import get_config
+from .config_state import get_config
 
 WEATHER_CODES = {
     0: "Clear",

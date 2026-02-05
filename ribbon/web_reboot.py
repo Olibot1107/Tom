@@ -1,7 +1,7 @@
 import threading
 import subprocess
 from flask import Flask
-from config_state import get_config
+from .config_state import get_config
 
 
 class RebootWebServer:

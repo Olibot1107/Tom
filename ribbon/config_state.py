@@ -4,7 +4,7 @@ import copy
 import threading
 from small import DisplayType
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 ASSETS_DIR = os.path.join(BASE_DIR, "config")
 BACKGROUND_PATH = os.path.join(ASSETS_DIR, "background.png")
@@ -54,6 +54,12 @@ DEFAULT_CONFIG = {
     "audio": {
         "enabled": True,
         "path": BOOT_SOUND_PATH,
+    },
+    "speech": {
+        "enabled": False,
+        "wake_word": "tom",
+        "model_path": os.path.join(BASE_DIR, "models", "uk_v3_dynamic"),
+        "model_url": "https://huggingface.co/Yehor/vosk-uk/resolve/main/uk_v3_dynamic.zip",
     },
     "web": {
         "config_port": 5000,

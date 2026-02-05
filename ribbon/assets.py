@@ -3,7 +3,7 @@ import math
 import wave
 import struct
 from PIL import Image
-from config_state import ASSETS_DIR, BACKGROUND_PATH, BOOT_SOUND_PATH, DEFAULT_AVIF_PATH
+from .config_state import ASSETS_DIR, BACKGROUND_PATH, BOOT_SOUND_PATH, DEFAULT_AVIF_PATH
 
 
 def _write_default_beep(path):

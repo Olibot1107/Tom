@@ -1,7 +1,7 @@
 import os
 import shutil
 import subprocess
-from config_state import get_config
+from .config_state import get_config
 
 
 def play_boot_sound():
@@ -22,3 +22,15 @@ def play_boot_sound():
                 return
             except Exception:
                 continue
+
+
+def speak(text):
+    if not text:
+        return
+    if not shutil.which("espeak"):
+        print("⚠️  espeak not found; cannot speak.")
+        return
+    try:
+        subprocess.Popen(["espeak", text])
+    except Exception:
+        return

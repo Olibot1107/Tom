@@ -1,7 +1,7 @@
 import os
 import threading
 from flask import Flask, request
-from config_state import get_config, update_config, ASSETS_DIR, BACKGROUND_PATH, BOOT_SOUND_PATH
+from .config_state import get_config, update_config, ASSETS_DIR, BACKGROUND_PATH, BOOT_SOUND_PATH
 
 
 class ConfigWebServer:

@@ -1,8 +1,8 @@
 import os
 import time
 from datetime import datetime
-from config_state import get_config
-from system_info import get_system_info
+from .config_state import get_config
+from .system_info import get_system_info
 
 
 class TerminalUI:

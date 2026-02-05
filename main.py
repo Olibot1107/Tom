@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Entry point for Raspberry Pi 5 Ribbon Display"""
 
-from app import main
+from ribbon.app import main
 
 if __name__ == "__main__":
     main()
