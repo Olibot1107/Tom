@@ -2,6 +2,7 @@ import os
 import threading
 from flask import Flask, request
 from .config_state import get_config, update_config, ASSETS_DIR, BACKGROUND_PATH, BOOT_SOUND_PATH
+from .audio import speak
 
 
 class ConfigWebServer:
@@ -43,6 +44,10 @@ class ConfigWebServer:
                         <label>Enable Boot Sound: <input type="checkbox" name="audio_enabled" {'checked' if audio.get('enabled', True) else ''}/></label><br/>
                         <input type="file" name="boot_sound" accept="audio/*" /><br/>
                         <small>Current: {audio.get('path')}</small><br/><br/>
+
+                        <h3>Speak</h3>
+                        <label>Say Text: <input name="say_text" value="hello there" /></label>
+                        <button type="submit" formaction="/speak" formmethod="post">Speak</button><br/><br/>
 
                         <button type="submit">Save</button>
                     </form>
@@ -101,6 +106,13 @@ class ConfigWebServer:
         def reboot():
             threading.Thread(target=self._do_reboot, daemon=True).start()
             return "<p>Reboot command sent.</p>"
+
+        @self.app.post("/speak")
+        def speak_text():
+            text = request.form.get("say_text", "").strip()
+            if text:
+                speak(text)
+            return "<p>Speaking. <a href='/'>Back</a></p>"
 
 
     def _do_reboot(self):
