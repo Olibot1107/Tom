@@ -8,6 +8,20 @@ from urllib.request import urlopen
 
 from .config_state import get_config
 
+_LAST_HEARD_LOCK = threading.Lock()
+_LAST_HEARD = ""
+
+
+def set_last_heard(text):
+    with _LAST_HEARD_LOCK:
+        global _LAST_HEARD
+        _LAST_HEARD = text
+
+
+def get_last_heard():
+    with _LAST_HEARD_LOCK:
+        return _LAST_HEARD
+
 
 class SpeechListener:
     def __init__(self, on_command, on_text=None):
@@ -76,6 +90,7 @@ class SpeechListener:
                         result = json.loads(recognizer.Result())
                         text = (result.get("text") or "").strip().lower()
                         if text:
+                            set_last_heard(text)
                             if self.on_text:
                                 self.on_text(text)
                             self._handle_text(text, cfg)
