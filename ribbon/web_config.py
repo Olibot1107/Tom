@@ -2,8 +2,6 @@ import os
 import threading
 from flask import Flask, request
 from .config_state import get_config, update_config, ASSETS_DIR, BACKGROUND_PATH, BOOT_SOUND_PATH
-from .audio import speak
-from .speech import get_last_heard
 
 
 class ConfigWebServer:
@@ -18,8 +16,6 @@ class ConfigWebServer:
             weather = cfg["weather"]
             bg = cfg["background"]
             audio = cfg.get("audio", {})
-            speech = cfg.get("speech", {})
-            last_heard = get_last_heard()
 
             return f"""
             <html>
@@ -48,16 +44,6 @@ class ConfigWebServer:
                         <input type="file" name="boot_sound" accept="audio/*" /><br/>
                         <small>Current: {audio.get('path')}</small><br/><br/>
 
-                        <h3>Voice</h3>
-                        <label>Enable Voice: <input type="checkbox" name="speech_enabled" {'checked' if speech.get('enabled', False) else ''}/></label><br/>
-                        <label>Wake Word: <input name="wake_word" value="{speech.get('wake_word', 'tom')}" /></label><br/>
-                        <label>Model Path: <input name="model_path" value="{speech.get('model_path', '')}" style="width: 100%;" /></label><br/>
-                        <label>Model URL: <input name="model_url" value="{speech.get('model_url', '')}" style="width: 100%;" /></label><br/>
-                        <small>Model folder must exist or it will auto-download on start.</small><br/><br/>
-                        <label>Say Text: <input name="say_text" value="hello there" /></label>
-                        <button type="submit" formaction="/speak" formmethod="post">Speak</button><br/>
-                        <small>Last heard: {last_heard or '—'}</small><br/><br/>
-
                         <button type="submit">Save</button>
                     </form>
                     <h3>System</h3>
@@ -75,7 +61,6 @@ class ConfigWebServer:
             weather_enabled = True if request.form.get("weather_enabled") else False
             bg_enabled = True if request.form.get("bg_enabled") else False
             audio_enabled = True if request.form.get("audio_enabled") else False
-            speech_enabled = True if request.form.get("speech_enabled") else False
 
             try:
                 lat = float(request.form.get("lat", "0"))
@@ -84,9 +69,6 @@ class ConfigWebServer:
                 lat, lon = 0.0, 0.0
 
             units = request.form.get("units", "imperial")
-            wake_word = request.form.get("wake_word", "tom").strip() or "tom"
-            model_path = request.form.get("model_path", "").strip()
-            model_url = request.form.get("model_url", "").strip()
 
             file = request.files.get("background")
             if file and file.filename:
@@ -111,12 +93,6 @@ class ConfigWebServer:
                     "enabled": audio_enabled,
                     "path": BOOT_SOUND_PATH,
                 },
-                "speech": {
-                    "enabled": speech_enabled,
-                    "wake_word": wake_word,
-                    "model_path": model_path,
-                    "model_url": model_url,
-                },
             })
 
             return "<p>Saved. <a href='/'>Back</a></p>"
@@ -126,12 +102,6 @@ class ConfigWebServer:
             threading.Thread(target=self._do_reboot, daemon=True).start()
             return "<p>Reboot command sent.</p>"
 
-        @self.app.post("/speak")
-        def speak_text():
-            text = request.form.get("say_text", "").strip()
-            if text:
-                speak(text)
-            return "<p>Speaking. <a href='/'>Back</a></p>"
 
     def _do_reboot(self):
         try:

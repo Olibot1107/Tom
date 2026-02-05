@@ -55,12 +55,6 @@ DEFAULT_CONFIG = {
         "enabled": True,
         "path": BOOT_SOUND_PATH,
     },
-    "speech": {
-        "enabled": False,
-        "wake_word": "tom",
-        "model_path": os.path.join(BASE_DIR, "models", "uk_v3_dynamic"),
-        "model_url": "https://huggingface.co/Yehor/vosk-uk/resolve/main/uk_v3_dynamic.zip",
-    },
     "web": {
         "config_port": 5000,
         "reboot_port": 500,

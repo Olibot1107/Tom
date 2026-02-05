@@ -3,7 +3,6 @@ import time
 from datetime import datetime
 from .config_state import get_config
 from .system_info import get_system_info
-from .speech import get_last_heard
 
 
 class TerminalUI:
@@ -55,16 +54,6 @@ class TerminalUI:
         weather = self.weather_provider.get_summary()
         print(f"{colors[5]}\033[1m{self.center_text(weather)}\033[0m")
 
-    def draw_voice_status(self):
-        colors = get_config()["terminal"]["colors"]
-        heard = get_last_heard().strip()
-        if not heard:
-            heard = "—"
-        label = f"Heard: {heard}"
-        if len(label) > self.width:
-            label = label[: self.width - 1]
-        print(f"{colors[6]}{self.center_text(label)}")
-
     def draw_system_info(self):
         colors = get_config()["terminal"]["colors"]
         cpu_temp, memory = get_system_info()
@@ -93,7 +82,6 @@ class TerminalUI:
         self.draw_header()
         self.draw_time_date()
         self.draw_weather()
-        self.draw_voice_status()
         self.draw_system_info()
 
     def start(self):
