@@ -13,6 +13,9 @@ import json
 import copy
 import subprocess
 import shutil
+import math
+import wave
+import struct
 from datetime import datetime
 from urllib.request import urlopen
 from urllib.parse import urlencode
@@ -28,6 +31,7 @@ CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 ASSETS_DIR = os.path.join(BASE_DIR, "config")
 BACKGROUND_PATH = os.path.join(ASSETS_DIR, "background.png")
 BOOT_SOUND_PATH = os.path.join(ASSETS_DIR, "boot.wav")
+DEFAULT_AVIF_PATH = os.path.join(BASE_DIR, "defalt.avif")
 
 DEFAULT_CONFIG = {
     "terminal": {
@@ -53,8 +57,8 @@ DEFAULT_CONFIG = {
         "rotate": 0,
         "refresh_s": 1.0,
         "font_sizes": {
-            "time": 26,
-            "date": 10,
+            "time": 28,
+            "date": 12,
             "weather": 12,
         },
     },
@@ -118,6 +122,41 @@ def update_config(patch):
     with CONFIG_LOCK:
         _deep_update(CONFIG, patch)
         save_config(CONFIG)
+
+
+def ensure_default_assets():
+    os.makedirs(ASSETS_DIR, exist_ok=True)
+
+    if not os.path.exists(BACKGROUND_PATH) and os.path.exists(DEFAULT_AVIF_PATH):
+        try:
+            img = Image.open(DEFAULT_AVIF_PATH)
+            img.save(BACKGROUND_PATH, format="PNG")
+            print("✅ Converted defalt.avif to background.png")
+        except Exception as e:
+            print(f"⚠️  Failed to convert defalt.avif: {e}")
+
+    if not os.path.exists(BOOT_SOUND_PATH):
+        try:
+            _write_default_beep(BOOT_SOUND_PATH)
+            print("✅ Wrote default boot beep")
+        except Exception as e:
+            print(f"⚠️  Failed to write default boot beep: {e}")
+
+
+def _write_default_beep(path):
+    sample_rate = 44100
+    duration_s = 0.18
+    frequency = 880.0
+    amplitude = 0.4
+    frames = int(sample_rate * duration_s)
+    with wave.open(path, "w") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(sample_rate)
+        for i in range(frames):
+            t = i / sample_rate
+            sample = amplitude * math.sin(2 * math.pi * frequency * t)
+            wf.writeframes(struct.pack("<h", int(sample * 32767)))
 
 
 # ====================
@@ -284,6 +323,14 @@ class TerminalUI:
         self.config_getter = config_getter
         self.weather_provider = weather_provider
 
+    def _update_terminal_size(self):
+        try:
+            size = os.get_terminal_size()
+            self.width = size.columns
+            self.height = size.lines
+        except OSError:
+            pass
+
     def clear_screen(self):
         """Clear the terminal screen"""
         os.system("cls" if os.name == "nt" else "clear")
@@ -347,6 +394,7 @@ class TerminalUI:
     def draw_all(self):
         """Draw complete display"""
         cfg = get_config()
+        self._update_terminal_size()
         if cfg["terminal"].get("clear_screen", True):
             self.clear_screen()
         else:
@@ -358,7 +406,7 @@ class TerminalUI:
 
     def start(self):
         """Start the terminal display"""
-        print("\033[?25l")  # Hide cursor
+        print("\033[?1049h\033[?25l")  # Alt screen + hide cursor
 
         try:
             while True:
@@ -370,7 +418,7 @@ class TerminalUI:
 
     def stop(self):
         """Stop the terminal display"""
-        print("\033[?25h")  # Show cursor
+        print("\033[?25h\033[?1049l")  # Show cursor + leave alt screen
         self.clear_screen()
         print("👋 Terminal display stopped!")
 
@@ -699,6 +747,7 @@ class CombinedDisplay:
         print("🚀 Initializing Raspberry Pi 5 Ribbon Display...")
         time.sleep(1)
 
+        ensure_default_assets()
         self._play_boot_sound()
         self.weather_provider.start()
         self.config_server.start()
